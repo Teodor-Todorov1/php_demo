@@ -24,7 +24,7 @@ use ImageColorAnalyzer\PublicAPI\AnalyzerFactory;
 $analyzer = AnalyzerFactory::createDefault();
 
 // From a path:
-$colors = $analyzer->analyze('/path/to/image.png');
+$colors = $analyzer->analyzePath('/path/to/image.png');
 
 // From a file handle (as the assignment requires):
 $handle = fopen('/path/to/image.jpg', 'rb');

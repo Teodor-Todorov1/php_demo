@@ -28,7 +28,11 @@ final class FileImageSource implements ImageSource
 
     public static function fromPath(string $path): self
     {
-        $handle = @fopen($path, 'rb');
+        if (!is_file($path) || !is_readable($path)) {
+            throw new InvalidImageException("Cannot open image file: {$path}");
+        }
+
+        $handle = fopen($path, 'rb');
         if ($handle === false) {
             throw new InvalidImageException("Cannot open image file: {$path}");
         }

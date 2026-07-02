@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ImageColorAnalyzer\Tests\Unit\ImageLoader;
 
 use ImageColorAnalyzer\Exception\InvalidImageException;
+use ImageColorAnalyzer\Exception\UnsupportedImageException;
 use ImageColorAnalyzer\ImageLoader\FileImageSource;
 use ImageColorAnalyzer\ImageLoader\GdImageLoader;
 use PHPUnit\Framework\TestCase;
@@ -74,19 +75,40 @@ final class GdImageLoaderTest extends TestCase
             self::fail('Unable to create palette image.');
         }
 
-        $red = imagecolorallocate($image, 255, 0, 0);
-        $blue = imagecolorallocate($image, 0, 0, 255);
-        if ($red === false || $blue === false) {
+        imagealphablending($image, false);
+        imagesavealpha($image, true);
+
+        $red = imagecolorallocatealpha($image, 255, 0, 0, 0);
+        $partialAlpha = imagecolorallocatealpha($image, 10, 20, 30, 63);
+        if ($red === false || $partialAlpha === false) {
             self::fail('Unable to allocate palette colors.');
         }
         imagesetpixel($image, 0, 0, $red);
-        imagesetpixel($image, 1, 0, $blue);
+        imagesetpixel($image, 1, 0, $partialAlpha);
 
         $source = FileImageSource::fromBytes($this->encodePng($image));
         $raster = (new GdImageLoader())->load($source);
 
+        self::assertTrue($raster->hasAlpha());
         self::assertSame('#FF0000', $raster->pixelAt(0, 0)->toHex());
-        self::assertSame('#0000FF', $raster->pixelAt(1, 0)->toHex());
+        self::assertSame(255, $raster->pixelAt(0, 0)->a);
+        self::assertSame('#0A141E', $raster->pixelAt(1, 0)->toHex());
+        self::assertEqualsWithDelta(129, $raster->pixelAt(1, 0)->a, 1);
+    }
+
+    public function testRejectsOversizedDecodedImageBeforeRasterizing(): void
+    {
+        $source = FileImageSource::fromBytes($this->pngBytes(static function (\GdImage $image): void {
+            $red = imagecolorallocate($image, 255, 0, 0);
+            if ($red === false) {
+                TestCase::fail('Unable to allocate test color.');
+            }
+            imagefilledrectangle($image, 0, 0, 1, 0, $red);
+        }, 2, 1));
+
+        $this->expectException(UnsupportedImageException::class);
+
+        (new GdImageLoader(maxPixels: 1))->load($source);
     }
 
     public function testCorruptImageThrowsClearException(): void
@@ -94,6 +116,13 @@ final class GdImageLoaderTest extends TestCase
         $this->expectException(InvalidImageException::class);
 
         (new GdImageLoader())->load(FileImageSource::fromBytes("\x89PNG\x0d\x0a\x1a\x0a" . 'not really png'));
+    }
+
+    public function testRejectsCmykJpegBeforeGdDecode(): void
+    {
+        $this->expectException(UnsupportedImageException::class);
+
+        (new GdImageLoader())->load(FileImageSource::fromBytes($this->cmykJpegHeaderBytes()));
     }
 
     /**
@@ -147,5 +176,14 @@ final class GdImageLoaderTest extends TestCase
         }
 
         return $bytes;
+    }
+
+    private function cmykJpegHeaderBytes(): string
+    {
+        return "\xFF\xD8"
+            . "\xFF\xE0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+            . "\xFF\xC0\x00\x14\x08\x00\x01\x00\x01\x04"
+            . "\x01\x11\x00\x02\x11\x00\x03\x11\x00\x04\x11\x00"
+            . "\xFF\xD9";
     }
 }

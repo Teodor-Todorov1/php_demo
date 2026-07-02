@@ -30,7 +30,7 @@ final class ImageColorAnalyzer
     }
 
     /**
-     * @param mixed $source ImageSource, stream resource, raw image bytes, GD image, or file path
+     * @param mixed $source ImageSource, stream resource, raw image bytes, or GD image
      * @return list<array{color:string,coverage_percent:float}>
      */
     public function analyze(mixed $source, ?AnalyzerOptions $options = null): array
@@ -50,12 +50,28 @@ final class ImageColorAnalyzer
     }
 
     /**
-     * @param mixed $source ImageSource, stream resource, raw image bytes, GD image, or file path
+     * @return list<array{color:string,coverage_percent:float}>
+     */
+    public function analyzePath(string $path, ?AnalyzerOptions $options = null): array
+    {
+        return $this->analyze($this->sourceResolver->resolvePath($path), $options);
+    }
+
+    /**
+     * @param mixed $source ImageSource, stream resource, raw image bytes, or GD image
      */
     public function analyzeAsJson(mixed $source, ?AnalyzerOptions $options = null): string
     {
         return (string) json_encode(
             $this->analyze($source, $options),
+            JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT,
+        );
+    }
+
+    public function analyzePathAsJson(string $path, ?AnalyzerOptions $options = null): string
+    {
+        return (string) json_encode(
+            $this->analyzePath($path, $options),
             JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT,
         );
     }

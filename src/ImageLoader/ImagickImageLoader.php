@@ -18,6 +18,8 @@ use Throwable;
  */
 final class ImagickImageLoader implements ImageLoaderInterface
 {
+    use ReadsImageSourceStreams;
+
     private const IMAGICK_CLASS = 'Imagick';
 
     private readonly GdImageLoader $gdLoader;
@@ -64,17 +66,6 @@ final class ImagickImageLoader implements ImageLoaderInterface
         }
 
         return $this->gdLoader->load(FileImageSource::fromBytes($pngBytes));
-    }
-
-    private function readAllBytes(ImageSource $source): string
-    {
-        $stream = $source->stream();
-        $bytes = stream_get_contents($stream);
-        if ($bytes === false || $bytes === '') {
-            throw new InvalidImageException('Image source is empty or unreadable.');
-        }
-
-        return $bytes;
     }
 
     private function newImagick(): object

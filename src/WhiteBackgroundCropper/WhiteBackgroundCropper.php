@@ -25,6 +25,7 @@ use ImageColorAnalyzer\Options\CropOptions;
  */
 final class WhiteBackgroundCropper implements CropperInterface
 {
+    /** @phpstan-ignore-next-line Used by Developer B implementation once cropping is completed. */
     public function __construct(private readonly ColorConverter $converter)
     {
     }

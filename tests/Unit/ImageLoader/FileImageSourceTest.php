@@ -60,6 +60,7 @@ final class FileImageSourceTest extends TestCase
     {
         $this->expectException(InvalidImageException::class);
 
+        /** @phpstan-ignore-next-line Deliberately passes invalid input to cover runtime validation. */
         FileImageSource::fromStream('not a stream');
     }
 

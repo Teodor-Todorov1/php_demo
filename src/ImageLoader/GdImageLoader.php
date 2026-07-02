@@ -221,7 +221,7 @@ final class GdImageLoader implements ImageLoaderInterface
     {
         $width = imagesx($image);
         $height = imagesy($image);
-        if ($width <= 0 || $height <= 0 || $width > intdiv($this->maxPixels, $height)) {
+        if ($width > intdiv($this->maxPixels, $height)) {
             throw new UnsupportedImageException(sprintf(
                 'Image dimensions %dx%d exceed the maximum supported pixel count of %d.',
                 $width,

@@ -23,8 +23,11 @@ use ImageColorAnalyzer\Options\ClusterOptions;
 final class KMeansClusterer implements ClustererInterface
 {
     public function __construct(
+        /** @phpstan-ignore-next-line Used by Developer C implementation once clustering is completed. */
         private readonly ColorConverter $converter,
+        /** @phpstan-ignore-next-line Used by Developer C implementation once clustering is completed. */
         private readonly ColorHistogram $histogram,
+        /** @phpstan-ignore-next-line Used by Developer C implementation once clustering is completed. */
         private readonly KSelector $kSelector,
     ) {
     }

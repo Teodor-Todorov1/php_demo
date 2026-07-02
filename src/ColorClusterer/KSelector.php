@@ -18,6 +18,7 @@ use ImageColorAnalyzer\Exception\NotImplementedException;
  */
 final class KSelector
 {
+    /** @phpstan-ignore-next-line Used by Developer C implementation once k-selection is completed. */
     public function __construct(private readonly ColorConverter $converter)
     {
     }

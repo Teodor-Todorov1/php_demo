@@ -113,7 +113,7 @@ final class FileImageSource implements ImageSource
     private static function isSeekable($handle): bool
     {
         $metadata = stream_get_meta_data($handle);
-        if (($metadata['seekable'] ?? false) !== true) {
+        if ($metadata['seekable'] !== true) {
             return false;
         }
 

@@ -84,7 +84,6 @@ final class ImagickImageLoader implements ImageLoaderInterface
             throw new UnsupportedImageException("Imagick method {$method} is unavailable.");
         }
 
-        /** @phpstan-ignore-next-line Dynamic optional-extension call. */
         return $target->{$method}(...$arguments);
     }
 

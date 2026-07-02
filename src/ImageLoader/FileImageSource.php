@@ -61,8 +61,7 @@ final class FileImageSource implements ImageSource
             throw new InvalidImageException('Expected a valid, readable stream resource.');
         }
 
-        $metadata = stream_get_meta_data($handle);
-        if (($metadata['seekable'] ?? false) !== true) {
+        if (!self::isSeekable($handle)) {
             $bytes = stream_get_contents($handle);
             if ($bytes === false) {
                 throw new InvalidImageException('Unable to read image bytes from stream.');
@@ -106,6 +105,24 @@ final class FileImageSource implements ImageSource
         }
 
         throw new UnsupportedImageException('Only PNG and JPEG sources are supported.');
+    }
+
+    /**
+     * @param resource $handle
+     */
+    private static function isSeekable($handle): bool
+    {
+        $metadata = stream_get_meta_data($handle);
+        if (($metadata['seekable'] ?? false) !== true) {
+            return false;
+        }
+
+        set_error_handler(static fn (): bool => true);
+        try {
+            return fseek($handle, 0, SEEK_CUR) === 0;
+        } finally {
+            restore_error_handler();
+        }
     }
 
     /**

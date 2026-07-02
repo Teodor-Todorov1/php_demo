@@ -9,7 +9,7 @@ colors, and reports each principal print color with its coverage percentage.
 > algorithmic modules are stubbed and owned per developer — see below.
 
 ## Requirements
-- PHP >= 8.3 with `ext-gd`
+- PHP >= 8.2 with `ext-gd` (8.4+ recommended)
 - Optional `ext-imagick` (enables the Imagick loader for CMYK/large images)
 
 ## Install

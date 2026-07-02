@@ -5,7 +5,7 @@
     "license": "MIT",
     "keywords": ["image", "color", "clustering", "kmeans", "cielab", "print", "gd"],
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.2",
         "ext-gd": "*"
     },
     "require-dev": {

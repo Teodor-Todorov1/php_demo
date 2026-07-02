@@ -86,6 +86,9 @@ final class NonSeekableImageStream
 
     public static string $bytes = '';
 
+    /** @var resource|null Stream context, assigned by PHP's stream machinery. */
+    public $context;
+
     private int $position = 0;
 
     public static function register(): void

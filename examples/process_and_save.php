@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use ImageColorAnalyzer\Exception\ImageAnalyzerException;
 use ImageColorAnalyzer\PublicAPI\AnalyzerFactory;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -14,7 +15,12 @@ if ($input === null || $output === null) {
     exit(1);
 }
 
-$result = AnalyzerFactory::createDefault()->processPath($input);
-$result->croppedImage->saveTo($output, overwrite: in_array('--overwrite', $argv, true));
+try {
+    $result = AnalyzerFactory::createDefault()->processPath($input);
+    $result->croppedImage->saveTo($output, overwrite: in_array('--overwrite', $argv, true));
+} catch (ImageAnalyzerException $exception) {
+    fwrite(STDERR, 'Error: ' . $exception->getMessage() . PHP_EOL);
+    exit(1);
+}
 
 echo $result->json . PHP_EOL;

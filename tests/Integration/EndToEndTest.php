@@ -251,6 +251,37 @@ final class EndToEndTest extends TestCase
         self::assertSame(127, ($pixel >> 24) & 0x7F);
     }
 
+    public function testProcessPreservesMidAlphaPixelsInACroppedRegion(): void
+    {
+        $handle = $this->pngHandle(3, 3, static function (\GdImage $img): void {
+            imagealphablending($img, false);
+            imagesavealpha($img, true);
+            imagefilledrectangle($img, 0, 0, 2, 2, self::rgb($img, 255, 255, 255));
+            imagesetpixel($img, 1, 1, self::rgba($img, 12, 34, 56, 63));
+        });
+
+        try {
+            $result = AnalyzerFactory::createDefault()->process($handle);
+        } finally {
+            fclose($handle);
+        }
+
+        self::assertTrue($result->wasCropped);
+        self::assertSame(1, $result->croppedImage->width);
+        self::assertSame(1, $result->croppedImage->height);
+
+        $image = imagecreatefromstring($result->croppedImage->bytes);
+        self::assertInstanceOf(\GdImage::class, $image);
+        $pixel = imagecolorat($image, 0, 0);
+        self::assertIsInt($pixel);
+        self::assertSame([12, 34, 56, 63], [
+            ($pixel >> 16) & 0xFF,
+            ($pixel >> 8) & 0xFF,
+            $pixel & 0xFF,
+            ($pixel >> 24) & 0x7F,
+        ]);
+    }
+
     public function testProcessConvertsJpegInputToCanonicalPng(): void
     {
         $result = AnalyzerFactory::createDefault()->processPath(__DIR__ . '/../Fixtures/real/sample.jpg');

@@ -62,7 +62,7 @@ php -m | findstr /i gd     # Windows
 ```bash
 php examples/analyze_from_path.php tests/Fixtures/real/sample.png
 php examples/analyze_from_handle.php tests/Fixtures/real/sample.jpg
-php examples/process_and_save.php tests/Fixtures/real/logo_white_border.png /tmp/cropped.png
+php examples/process_and_save.php tests/Fixtures/real/logo_white_border.png cropped.png
 ```
 
 ### 4. Try the edge-case fixtures (loader / cropper paths)

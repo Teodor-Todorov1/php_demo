@@ -46,27 +46,77 @@ final readonly class EncodedImage
 
     private function writeToPath(string $path, bool $overwrite): void
     {
-        $existed = file_exists($path);
-        $stream = $this->openDestination($path, $overwrite);
+        if (!$overwrite) {
+            $this->writeNewFile($path);
+
+            return;
+        }
+
+        $this->replaceAtomically($path);
+    }
+
+    private function writeNewFile(string $path): void
+    {
+        $stream = $this->openDestination($path);
 
         try {
             $this->writeAll($stream, $path);
+            $this->finalize($stream, $path);
         } catch (Throwable $exception) {
-            fclose($stream);
-            if (!$existed && is_file($path)) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            if (is_file($path)) {
                 unlink($path);
             }
 
-            if ($exception instanceof ImageSaveException) {
-                throw $exception;
-            }
+            $this->throwSaveFailure($path, $exception);
+        }
+    }
 
-            throw new ImageSaveException("Unable to save cropped image to {$path}.", previous: $exception);
+    private function replaceAtomically(string $path): void
+    {
+        $directory = dirname($path);
+        if (!is_dir($directory)) {
+            throw new ImageSaveException("Unable to open cropped image destination: {$path}.");
         }
 
-        $flushed = fflush($stream);
-        $closed = fclose($stream);
-        if (!$flushed || !$closed) {
+        $temporaryPath = tempnam($directory, '.ica-');
+        if ($temporaryPath === false) {
+            throw new ImageSaveException("Unable to open cropped image destination: {$path}.");
+        }
+
+        $stream = fopen($temporaryPath, 'wb');
+        if ($stream === false) {
+            unlink($temporaryPath);
+            throw new ImageSaveException("Unable to open cropped image destination: {$path}.");
+        }
+
+        try {
+            $this->writeAll($stream, $path);
+            $this->finalize($stream, $path);
+
+            if (!rename($temporaryPath, $path)) {
+                throw new ImageSaveException("Unable to replace cropped image destination: {$path}.");
+            }
+        } catch (Throwable $exception) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+            if (is_file($temporaryPath)) {
+                unlink($temporaryPath);
+            }
+
+            $this->throwSaveFailure($path, $exception);
+        }
+    }
+
+    /**
+     * @param resource $stream
+     */
+    private function finalize($stream, string $path): void
+    {
+        if (!fflush($stream) || !fclose($stream)) {
             throw new ImageSaveException("Unable to finalize cropped image destination: {$path}.");
         }
     }
@@ -74,12 +124,12 @@ final readonly class EncodedImage
     /**
      * @return resource
      */
-    private function openDestination(string $path, bool $overwrite)
+    private function openDestination(string $path)
     {
-        $stream = fopen($path, $overwrite ? 'wb' : 'xb');
+        $stream = fopen($path, 'xb');
 
         if ($stream === false) {
-            if (!$overwrite && file_exists($path)) {
+            if (file_exists($path)) {
                 throw new ImageSaveException("Cropped image destination already exists: {$path}.");
             }
 
@@ -104,5 +154,14 @@ final readonly class EncodedImage
             }
             $offset += $written;
         }
+    }
+
+    private function throwSaveFailure(string $path, Throwable $exception): never
+    {
+        if ($exception instanceof ImageSaveException) {
+            throw $exception;
+        }
+
+        throw new ImageSaveException("Unable to save cropped image to {$path}.", previous: $exception);
     }
 }

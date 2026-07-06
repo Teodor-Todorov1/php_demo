@@ -85,6 +85,25 @@ final class EncodedImageTest extends TestCase
         }
     }
 
+    public function testOverwriteAtomicallyReplacesTheDestination(): void
+    {
+        $directory = $this->temporaryDirectory();
+        $path = $directory . '/crop.png';
+        file_put_contents($path, 'original');
+        $original = fopen($path, 'rb');
+        self::assertIsResource($original);
+
+        try {
+            (new EncodedImage('replacement', 1, 1))->saveTo($path, overwrite: true);
+
+            self::assertSame('replacement', file_get_contents($path));
+            self::assertSame('original', stream_get_contents($original));
+        } finally {
+            fclose($original);
+            $this->removeDirectory($directory);
+        }
+    }
+
     public function testReportsInvalidDestinationWithoutCreatingDirectories(): void
     {
         $directory = $this->temporaryDirectory();

@@ -62,7 +62,8 @@ $result->croppedImage->saveTo('/path/to/cropped.png');
 `ProcessedImageResult`: the exact legacy JSON string, lossless cropped PNG bytes, output
 dimensions, and the source-coordinate crop box. The library does not create files unless
 `EncodedImage::saveTo()` is called; parent directories must already exist, and existing
-files are protected unless `overwrite: true` is supplied.
+files are protected unless `overwrite: true` is supplied. Explicit replacements are written
+to a sibling temporary file and atomically renamed into place.
 
 ## How it works
 

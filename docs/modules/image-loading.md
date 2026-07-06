@@ -114,7 +114,8 @@ The `process*()` methods retain the crop already produced by the pipeline and pa
 view and a row-major pixel fallback for custom rasters. Output is always `image/png`, even
 for JPEG input, so crop pixels and alpha are preserved. `EncodedImage::saveTo()` can write
 those bytes to an existing directory; it refuses existing destinations unless
-`overwrite: true` is explicit.
+`overwrite: true` is explicit. Overwrites use a temporary file in the destination directory
+and an atomic rename, preserving the prior file if writing or finalization fails.
 
 ## Error handling
 

@@ -31,7 +31,9 @@ implementations.
 PNG is always returned, including for JPEG inputs, because it is lossless and preserves
 alpha. The library returns bytes by default. `EncodedImage::saveTo()` is an explicit
 convenience: it requires an existing parent directory, refuses to overwrite by default, and
-only replaces a destination when `overwrite: true` is passed.
+only replaces a destination when `overwrite: true` is passed. Replacements are written to a
+sibling temporary file and atomically renamed into place so a failed write leaves the prior
+destination intact.
 
 ## Alternatives considered
 
